@@ -84,6 +84,16 @@
     outline: none;
     border-color: var(--accent);
   }
+  .form-group input.error {
+    border-color: var(--wrong);
+  }
+  .error-msg {
+    color: var(--wrong);
+    font-size: 0.85rem;
+    margin-top: 0.35rem;
+    display: none;
+  }
+  .error-msg.show { display: block; }
   .btn {
     display: inline-block;
     padding: 0.85rem 2rem;
@@ -464,12 +474,13 @@
         <div class="form-group">
           <label for="studentName">Nama Lengkap</label>
           <input type="text" id="studentName" placeholder="Masukkan nama kamu..." autocomplete="off">
+          <div class="error-msg" id="nameError">Mohon isi nama lengkap terlebih dahulu!</div>
         </div>
         <div class="form-group">
           <label for="studentClass">Kelas</label>
           <input type="text" id="studentClass" placeholder="Contoh: VI A" autocomplete="off">
         </div>
-        <button id="startBtn" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">Mulai Mengerjakan</button>
+        <button type="button" id="startBtn" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">Mulai Mengerjakan</button>
       </div>
     </div>
   </div>
@@ -485,8 +496,8 @@
     <div id="questionContainer"></div>
 
     <div class="quiz-nav">
-      <button id="prevBtn" class="btn btn-secondary">Sebelumnya</button>
-      <button id="nextBtn" class="btn btn-primary">Selanjutnya</button>
+      <button type="button" id="prevBtn" class="btn btn-secondary">Sebelumnya</button>
+      <button type="button" id="nextBtn" class="btn btn-primary">Selanjutnya</button>
     </div>
   </div>
 
@@ -520,220 +531,145 @@
         <div class="review-section" id="reviewSection"></div>
       </div>
 
-      <button id="restartBtn" class="btn btn-secondary">Kerjakan Ulang</button>
+      <button type="button" id="restartBtn" class="btn btn-secondary">Kerjakan Ulang</button>
     </div>
   </div>
 
 </div>
 
 <script>
-(function() {
-  // ===== URL SPREADSHEET GURU SUDAH DITANAMKAN DI SINI =====
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xzqYZiLVP4oJlOyrZO9ZbwvzU_mK3fJhgqd20anX1IrLObdfWVmsOJr4L24Lp8h_iQ/exec';
+// URL SPREADSHEET GURU
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xzqYZiLVP4oJlOyrZO9ZbwvzU_mK3fJhgqd20anX1IrLObdfWVmsOJr4L24Lp8h_iQ/exec';
 
-  // ===== DATA SOAL =====
-  const questions = [
-    // === KATEGORI A: PILIHAN GANDA ===
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Siapa yang memberikan salinan teks proklamasi kepada Walden B. Palenewen?',
-      options: ['Soekarno', 'Mohammad Hatta', 'Jusuf Ronodipuro', 'F. Wuz'],
-      answer: 3
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Apa yang dilakukan Walden B. Palenewen setelah mendapatkan salinan teks proklamasi?',
-      options: [
-        'Ia memberikan salinan tersebut kepada Jepang',
-        'Ia segera menghentikan siaran radio',
-        'Ia menyiarkan berita Proklamasi Kemerdekaan Indonesia melalui radio sebanyak tiga kali berturut-turut',
-        'Ia menyembunyikan salinan teks proklamasi tersebut'
-      ],
-      answer: 2
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Kalimat tanya yang tepat untuk kalimat yang bercetak miring (tentang pendirian pemancar baru oleh para pemuda) adalah…',
-      options: [
-        'Kapan para pemuda mendirikan pemancar baru?',
-        'Mengapa para pemuda mendirikan pemancar baru?',
-        'Di mana para pemuda mendirikan pemancar baru?',
-        'Siapa yang mendirikan pemancar baru?'
-      ],
-      answer: 1
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Informasi yang TIDAK sesuai isi teks adalah…',
-      options: [
-        'Walden B. Palenewen mematuhi perintah Jepang untuk menghentikan siaran berita Proklamasi Kemerdekaan Indonesia',
-        'Pemancar radio di Kantor Berita Domei dilarang oleh Jepang',
-        'Para pemuda mendirikan pemancar baru untuk menyiarkan berita proklamasi',
-        'Berita Proklamasi Kemerdekaan Indonesia tetap dapat disiarkan'
-      ],
-      answer: 0
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Makna kata yang bergaris bawah (disel) adalah…',
-      options: ['pemisahan', 'penceritaan', 'pengecualian', 'pengumuman'],
-      answer: 3
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Lagu "Indonesia Raya" pertama kali dikumandangkan pada…',
-      options: ['28 Oktober 1928', '17 Agustus 1945', '28 Oktober 1963', '17 Agustus 1928'],
-      answer: 0
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Penggubah lagu "Indonesia Raya" adalah…',
-      options: ['Ismail Marzuki', 'W.R. Soepratman', 'Kusbini', 'Cornel Simanjuntak'],
-      answer: 1
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Peringatan hari lahir ke-25 lagu "Indonesia Raya" dilaksanakan di…',
-      options: ['Stadion Ikada, Jakarta', 'Istana Negara, Jakarta', 'Monumen Nasional, Jakarta', 'Lapangan Merdeka, Jakarta'],
-      answer: 0
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Informasi yang TIDAK sesuai tentang peringatan hari lahir ke-25 lagu "Indonesia Raya" adalah…',
-      options: [
-        'Lagu "Indonesia Raya" dinyanyikan serentak oleh puluhan ribu orang',
-        'Presiden Soekarno turut hadir dalam acara tersebut',
-        'Mohammad Hatta juga hadir dalam acara peringatan tersebut',
-        'Presiden dan Wakil Presiden turut menghadiri acara peringatan tersebut'
-      ],
-      answer: 3
-    },
-    {
-      type: 'multiple',
-      category: 'Pilihan Ganda',
-      badgeClass: 'badge-pg',
-      question: 'Anton merupakan bintang kelas di kelasnya. Makna dari majas metafora yang bercetak miring adalah…',
-      options: ['pengalah', 'pemenang', 'berprestasi', 'paling rajin'],
-      answer: 2
-    },
+// DATA SOAL
+var questions = [
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Siapa yang memberikan salinan teks proklamasi kepada Walden B. Palenewen?',
+    options: ['Soekarno', 'Mohammad Hatta', 'Jusuf Ronodipuro', 'F. Wuz'], answer: 3 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Apa yang dilakukan Walden B. Palenewen setelah mendapatkan salinan teks proklamasi?',
+    options: ['Ia memberikan salinan tersebut kepada Jepang', 'Ia segera menghentikan siaran radio',
+              'Ia menyiarkan berita Proklamasi Kemerdekaan Indonesia melalui radio sebanyak tiga kali berturut-turut',
+              'Ia menyembunyikan salinan teks proklamasi tersebut'], answer: 2 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Kalimat tanya yang tepat untuk kalimat yang bercetak miring (tentang pendirian pemancar baru oleh para pemuda) adalah…',
+    options: ['Kapan para pemuda mendirikan pemancar baru?', 'Mengapa para pemuda mendirikan pemancar baru?',
+              'Di mana para pemuda mendirikan pemancar baru?', 'Siapa yang mendirikan pemancar baru?'], answer: 1 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Informasi yang TIDAK sesuai isi teks adalah…',
+    options: ['Walden B. Palenewen mematuhi perintah Jepang untuk menghentikan siaran berita Proklamasi Kemerdekaan Indonesia',
+              'Pemancar radio di Kantor Berita Domei dilarang oleh Jepang',
+              'Para pemuda mendirikan pemancar baru untuk menyiarkan berita proklamasi',
+              'Berita Proklamasi Kemerdekaan Indonesia tetap dapat disiarkan'], answer: 0 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Makna kata yang bergaris bawah (disel) adalah…',
+    options: ['pemisahan', 'penceritaan', 'pengecualian', 'pengumuman'], answer: 3 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Lagu "Indonesia Raya" pertama kali dikumandangkan pada…',
+    options: ['28 Oktober 1928', '17 Agustus 1945', '28 Oktober 1963', '17 Agustus 1928'], answer: 0 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Penggubah lagu "Indonesia Raya" adalah…',
+    options: ['Ismail Marzuki', 'W.R. Soepratman', 'Kusbini', 'Cornel Simanjuntak'], answer: 1 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Peringatan hari lahir ke-25 lagu "Indonesia Raya" dilaksanakan di…',
+    options: ['Stadion Ikada, Jakarta', 'Istana Negara, Jakarta', 'Monumen Nasional, Jakarta', 'Lapangan Merdeka, Jakarta'], answer: 0 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Informasi yang TIDAK sesuai tentang peringatan hari lahir ke-25 lagu "Indonesia Raya" adalah…',
+    options: ['Lagu "Indonesia Raya" dinyanyikan serentak oleh puluhan ribu orang',
+              'Presiden Soekarno turut hadir dalam acara tersebut',
+              'Mohammad Hatta juga hadir dalam acara peringatan tersebut',
+              'Presiden dan Wakil Presiden turut menghadiri acara peringatan tersebut'], answer: 3 },
+  { type: 'multiple', category: 'Pilihan Ganda', badgeClass: 'badge-pg',
+    question: 'Anton merupakan bintang kelas di kelasnya. Makna dari majas metafora yang bercetak miring adalah…',
+    options: ['pengalah', 'pemenang', 'berprestasi', 'paling rajin'], answer: 2 },
+  { type: 'fill', category: 'Isian Singkat', badgeClass: 'badge-isian',
+    question: 'Mitos yang terdapat pada legenda Batu Menangis adalah …' },
+  { type: 'fill', category: 'Isian Singkat', badgeClass: 'badge-isian',
+    question: 'Fakta yang terdapat pada legenda Batu Menangis adalah …' },
+  { type: 'fill', category: 'Isian Singkat', badgeClass: 'badge-isian',
+    question: 'Pesan yang terkandung dalam legenda Batu Menangis adalah …' },
+  { type: 'fill', category: 'Isian Singkat', badgeClass: 'badge-isian',
+    question: 'Dalam legenda Batu Menangis, majas simile terdapat pada kalimat …' },
+  { type: 'fill', category: 'Isian Singkat', badgeClass: 'badge-isian',
+    question: 'Legenda merupakan cerita rakyat yang berisi cerita tentang …' },
+  { type: 'essay', category: 'Uraian / Essay', badgeClass: 'badge-essay',
+    question: 'Monas singkatan dari … Jelaskan secara singkat!' },
+  { type: 'essay', category: 'Uraian / Essay', badgeClass: 'badge-essay',
+    question: 'Lokasi Monas berada di … Sebutkan alamat lengkapnya!' },
+  { type: 'essay', category: 'Uraian / Essay', badgeClass: 'badge-essay',
+    question: 'Luas area Monumen Nasional adalah … Berikan penjelasan tambahan tentang Monas!' }
+];
 
-    // === KATEGORI B: ISIAN ===
-    {
-      type: 'fill',
-      category: 'Isian Singkat',
-      badgeClass: 'badge-isian',
-      question: 'Mitos yang terdapat pada legenda Batu Menangis adalah …'
-    },
-    {
-      type: 'fill',
-      category: 'Isian Singkat',
-      badgeClass: 'badge-isian',
-      question: 'Fakta yang terdapat pada legenda Batu Menangis adalah …'
-    },
-    {
-      type: 'fill',
-      category: 'Isian Singkat',
-      badgeClass: 'badge-isian',
-      question: 'Pesan yang terkandung dalam legenda Batu Menangis adalah …'
-    },
-    {
-      type: 'fill',
-      category: 'Isian Singkat',
-      badgeClass: 'badge-isian',
-      question: 'Dalam legenda Batu Menangis, majas simile terdapat pada kalimat …'
-    },
-    {
-      type: 'fill',
-      category: 'Isian Singkat',
-      badgeClass: 'badge-isian',
-      question: 'Legenda merupakan cerita rakyat yang berisi cerita tentang …'
-    },
+// VARIABEL GLOBAL
+var currentIndex = 0;
+var answers = [];
+var studentName = '';
+var studentClass = '';
 
-    // === KATEGORI C: ESSAY ===
-    {
-      type: 'essay',
-      category: 'Uraian / Essay',
-      badgeClass: 'badge-essay',
-      question: 'Monas singkatan dari … Jelaskan secara singkat!'
-    },
-    {
-      type: 'essay',
-      category: 'Uraian / Essay',
-      badgeClass: 'badge-essay',
-      question: 'Lokasi Monas berada di … Sebutkan alamat lengkapnya!'
-    },
-    {
-      type: 'essay',
-      category: 'Uraian / Essay',
-      badgeClass: 'badge-essay',
-      question: 'Luas area Monumen Nasional adalah … Berikan penjelasan tambahan tentang Monas!'
-    }
-  ];
+// INISIALISASI SAAT HALAMAN SIAP
+document.addEventListener('DOMContentLoaded', function() {
+  initApp();
+});
 
-  // ===== STATE =====
-  let currentIndex = 0;
-  let answers = new Array(questions.length).fill(null);
-  let studentData = { name: '', class: '' };
-  let submitted = false;
-
-  // ===== DOM ELEMENTS =====
-  const screens = {
-    start: document.getElementById('startScreen'),
-    quiz: document.getElementById('quizScreen'),
-    result: document.getElementById('resultScreen')
-  };
-  const startBtn = document.getElementById('startBtn');
-  const prevBtn = document.getElementById('prevBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const restartBtn = document.getElementById('restartBtn');
-  const questionContainer = document.getElementById('questionContainer');
-  const progressFill = document.getElementById('progressFill');
-  const currentQEl = document.getElementById('currentQ');
-  const totalQEl = document.getElementById('totalQ');
-
-  // ===== FUNCTIONS =====
-  function showScreen(screenName) {
-    Object.keys(screens).forEach(k => screens[k].classList.remove('active'));
-    screens[screenName].classList.add('active');
-    window.scrollTo(0, 0);
+function initApp() {
+  // Reset jawaban
+  answers = new Array(questions.length).fill(null);
+  currentIndex = 0;
+  
+  // Pasang event listener tombol
+  var startBtn = document.getElementById('startBtn');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var restartBtn = document.getElementById('restartBtn');
+  
+  if (startBtn) startBtn.addEventListener('click', startQuiz);
+  if (prevBtn) prevBtn.addEventListener('click', prevQuestion);
+  if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
+  if (restartBtn) restartBtn.addEventListener('click', restart);
+  
+  // Enter pada input nama
+  var nameInput = document.getElementById('studentName');
+  var classInput = document.getElementById('studentClass');
+  
+  if (nameInput) {
+    nameInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && classInput) classInput.focus();
+    });
   }
+  if (classInput) {
+    classInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') startQuiz();
+    });
+  }
+  
+  // Set total soal
+  var totalQ = document.getElementById('totalQ');
+  if (totalQ) totalQ.textContent = questions.length;
+}
 
-  function startQuiz() {
-    const name = document.getElementById('studentName').value.trim();
-    const cls = document.getElementById('studentClass').value.trim();
-
-    if (!name) {
-      alert('Mohon isi nama lengkap terlebih dahulu!');
-      document.getElementById('studentName').focus();
-      return;
+function showScreen(screenName) {
+  var screens = ['startScreen', 'quizScreen', 'resultScreen'];
+  for (var i = 0; i < screens.length; i++) {
+    var el = document.getElementById(screens[i]);
+    if (el) {
+      if (screens[i] === screenName) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
     }
+  }
+  window.scrollTo(0, 0);
+}
 
-    studentData = { name, class: cls || '-' };
-    document.getElementById('displayName').textContent = name;
-    document.getElementById('displayClass').textContent = cls || '-';
-    totalQEl.textContent = questions.length;
-    
-    currentIndex = 0;
-    answers = new Array(questions.length).fill(null);
-    submitted = false;
-    
-    showScreen('quiz');
-    renderQues
+function startQuiz() {
+  var nameInput = document.getElementById('studentName');
+  var classInput = document.getElementById('studentClass');
+  var nameError = document.getElementById('nameError');
+  
+  studentName = nameInput ? nameInput.value.trim() : '';
+  studentClass = classInput ? classInput.value.trim() : '';
+  
+  // Validasi nama
+  if (!studentName) {
+    if (nameInput) name
