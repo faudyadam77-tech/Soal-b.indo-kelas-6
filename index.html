@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuis Bahasa Indonesia Kelas VI</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf9f4;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --accent: #297a2e;
+    --accent-soft: rgba(41, 122, 46, .14);
+    --accent2: #d97706;
+    --accent2-soft: rgba(217, 119, 6, .14);
+    --border: rgba(15, 23, 42, .08);
+    --wrong: #dc2626;
+    --wrong-soft: rgba(220, 38, 38, .1);
+    --correct: #16a34a;
+    --correct-soft: rgba(22, 163, 74, .1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Fredoka', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+  .app {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Start Screen */
+  .start-screen {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  .start-screen h1 {
+    font-size: 2.5rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .start-screen .tagline {
+    color: var(--muted);
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+  }
+  .form-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 450px;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  }
+  .form-group {
+    margin-bottom: 1.25rem;
+    text-align: left;
+  }
+  .form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+  .form-group input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .btn {
+    display: inline-block;
+    padding: 0.85rem 2rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(41, 122, 46, 0.3);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-secondary {
+    background: var(--card);
+    border: 2px solid var(--border);
+    color: var(--text);
+  }
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Quiz Screen */
+  .quiz-header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .student-info {
+    font-weight: 500;
+  }
+  .student-info span {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .progress-bar {
+    flex: 1;
+    min-width: 200px;
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.3s;
+    border-radius: 4px;
+  }
+  .question-counter {
+    font-weight: 600;
+    color: var(--muted);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .category-badge {
+    display: inline-block;
+    padding: 0.35rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .badge-pg {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .badge-isian {
+    background: var(--accent2-soft);
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+  }
+  .badge-essay {
+    background: rgba(13, 148, 136, 0.14);
+    color: #0d9488;
+    border: 1px solid #0d9488;
+  }
+
+  .question-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+  }
+  .question-text {
+    font-size: 1.15rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+  }
+  .question-text .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 50%;
+    font-weight: 700;
+    margin-right: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  /* Multiple Choice */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--card);
+  }
+  .option:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .option.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .option.selected .option-letter {
+    background: var(--accent);
+    color: #fff;
+  }
+  .option.correct {
+    border-color: var(--correct);
+    background: var(--correct-soft);
+  }
+  .option.correct .option-letter {
+    background: var(--correct);
+    color: #fff;
+  }
+  .option.wrong {
+    border-color: var(--wrong);
+    background: var(--wrong-soft);
+  }
+  .option.wrong .option-letter {
+    background: var(--wrong);
+    color: #fff;
+  }
+  .option-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: var(--border);
+    border-radius: 50%;
+    font-weight: 700;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .option-text {
+    flex: 1;
+  }
+
+  /* Text Input */
+  .text-input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color 0.2s;
+  }
+  .text-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .text-input.essay {
+    min-height: 120px;
+  }
+  .input-hint {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+  }
+
+  /* Navigation */
+  .quiz-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .quiz-nav .btn {
+    flex: 1;
+    max-width: 180px;
+  }
+
+  /* Result Screen */
+  .result-screen {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+  }
+  .score-circle {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: conic-gradient(var(--accent) calc(var(--score) * 1%), var(--border) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    position: relative;
+  }
+  .score-circle::before {
+    content: '';
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    background: var(--card);
+    border-radius: 50%;
+  }
+  .score-value {
+    position: relative;
+    z-index: 1;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .score-label {
+    font-size: 1.1rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .student-name-result {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+  .result-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .stat-item {
+    padding: 1rem;
+    border-radius: 12px;
+    background: var(--bg);
+  }
+  .stat-item .stat-num {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-item .stat-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .stat-item.correct .stat-num { color: var(--correct); }
+  .stat-item.wrong .stat-num { color: var(--wrong); }
+
+  .review-section {
+    text-align: left;
+    margin-top: 2rem;
+  }
+  .review-section h3 {
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .review-item {
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid;
+  }
+  .review-item.correct {
+    background: var(--correct-soft);
+    border-color: var(--correct);
+  }
+  .review-item.wrong {
+    background: var(--wrong-soft);
+    border-color: var(--wrong);
+  }
+  .review-item .q {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .review-item .ans {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .status-msg {
+    padding: 1rem;
+    border-radius: 10px;
+    margin: 1rem 0;
+    font-weight: 500;
+  }
+  .status-msg.success {
+    background: var(--correct-soft);
+    color: var(--correct);
+    border: 1px solid var(--correct);
+  }
+  .status-msg.error {
+    background: var(--wrong-soft);
+    color: var(--wrong);
+    border: 1px solid var(--wrong);
+  }
+  .status-msg.info {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+
+  @media (max-width: 600px) {
+    .app { padding: 1rem 0.75rem; }
+    .start-screen h1 { font-size: 1.8rem; }
+    .question-card { padding: 1.25rem; }
+    .quiz-nav { flex-direction: column; }
+    .quiz-nav .btn { max-width: 100%; }
+    .score-circle { width: 130px; height: 130px; }
+    .score-circle::before { width: 105px; height: 105px; }
+    .score-value { font-size: 2.25rem; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- START SCREEN -->
+  <div id="startScreen" class="screen active">
+    <div class="start-screen">
+      <h1>Kuis Bahasa Indonesia</h1>
+      <p class="tagline">Kelas VI SD — Soal Latihan Bab 6 & 7</p>
+      
+      <div class="form-card">
+        <div class="form-group">
+          <label for="studentName">Nama Lengkap</label>
+          <input type="text" id="studentName" placeholder="Masukkan nama kamu..." autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label for="studentClass">Kelas</label>
+          <input type="text" id="studentClass" placeholder="Contoh: VI A" autocomplete="off">
+        </div>
+        <button id="startBtn" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">Mulai Mengerjakan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quizScreen" class="screen">
+    <div class="quiz-header">
+      <div class="student-info">Siswa: <span id="displayName">-</span> | <span id="displayClass">-</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="question-counter"><span id="currentQ">1</span>/<span id="totalQ">18</span></div>
+    </div>
+
+    <div id="questionContainer"></div>
+
+    <div class="quiz-nav">
+      <button id="prevBtn" class="btn btn-secondary">Sebelumnya</button>
+      <button id="nextBtn" class="btn btn-primary">Selanjutnya</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="resultScreen" class="screen">
+    <div class="result-screen">
+      <div class="result-card">
+        <p class="score-label">Nilai Pilihan Ganda Kamu</p>
+        <div class="score-circle" id="scoreCircle" style="--score:0">
+          <div class="score-value" id="scoreValue">0</div>
+        </div>
+        <div class="student-name-result" id="resultName">-</div>
+        
+        <div class="result-stats">
+          <div class="stat-item correct">
+            <div class="stat-num" id="correctCount">0</div>
+            <div class="stat-label">Jawaban Benar</div>
+          </div>
+          <div class="stat-item wrong">
+            <div class="stat-num" id="wrongCount">0</div>
+            <div class="stat-label">Jawaban Salah</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="answeredCount">0</div>
+            <div class="stat-label">Total PG</div>
+          </div>
+        </div>
+
+        <div id="sendStatus"></div>
+
+        <div class="review-section" id="reviewSection"></div>
+      </div>
+
+      <button id="restartBtn" class="btn btn-secondary">Kerjakan Ulang</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // ===== URL SPREADSHEET GURU SUDAH DITANAMKAN DI SINI =====
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6xzqYZiLVP4oJlOyrZO9ZbwvzU_mK3fJhgqd20anX1IrLObdfWVmsOJr4L24Lp8h_iQ/exec';
+
+  // ===== DATA SOAL =====
+  const questions = [
+    // === KATEGORI A: PILIHAN GANDA ===
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Siapa yang memberikan salinan teks proklamasi kepada Walden B. Palenewen?',
+      options: ['Soekarno', 'Mohammad Hatta', 'Jusuf Ronodipuro', 'F. Wuz'],
+      answer: 3
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Apa yang dilakukan Walden B. Palenewen setelah mendapatkan salinan teks proklamasi?',
+      options: [
+        'Ia memberikan salinan tersebut kepada Jepang',
+        'Ia segera menghentikan siaran radio',
+        'Ia menyiarkan berita Proklamasi Kemerdekaan Indonesia melalui radio sebanyak tiga kali berturut-turut',
+        'Ia menyembunyikan salinan teks proklamasi tersebut'
+      ],
+      answer: 2
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Kalimat tanya yang tepat untuk kalimat yang bercetak miring (tentang pendirian pemancar baru oleh para pemuda) adalah…',
+      options: [
+        'Kapan para pemuda mendirikan pemancar baru?',
+        'Mengapa para pemuda mendirikan pemancar baru?',
+        'Di mana para pemuda mendirikan pemancar baru?',
+        'Siapa yang mendirikan pemancar baru?'
+      ],
+      answer: 1
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Informasi yang TIDAK sesuai isi teks adalah…',
+      options: [
+        'Walden B. Palenewen mematuhi perintah Jepang untuk menghentikan siaran berita Proklamasi Kemerdekaan Indonesia',
+        'Pemancar radio di Kantor Berita Domei dilarang oleh Jepang',
+        'Para pemuda mendirikan pemancar baru untuk menyiarkan berita proklamasi',
+        'Berita Proklamasi Kemerdekaan Indonesia tetap dapat disiarkan'
+      ],
+      answer: 0
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Makna kata yang bergaris bawah (disel) adalah…',
+      options: ['pemisahan', 'penceritaan', 'pengecualian', 'pengumuman'],
+      answer: 3
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Lagu "Indonesia Raya" pertama kali dikumandangkan pada…',
+      options: ['28 Oktober 1928', '17 Agustus 1945', '28 Oktober 1963', '17 Agustus 1928'],
+      answer: 0
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Penggubah lagu "Indonesia Raya" adalah…',
+      options: ['Ismail Marzuki', 'W.R. Soepratman', 'Kusbini', 'Cornel Simanjuntak'],
+      answer: 1
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Peringatan hari lahir ke-25 lagu "Indonesia Raya" dilaksanakan di…',
+      options: ['Stadion Ikada, Jakarta', 'Istana Negara, Jakarta', 'Monumen Nasional, Jakarta', 'Lapangan Merdeka, Jakarta'],
+      answer: 0
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Informasi yang TIDAK sesuai tentang peringatan hari lahir ke-25 lagu "Indonesia Raya" adalah…',
+      options: [
+        'Lagu "Indonesia Raya" dinyanyikan serentak oleh puluhan ribu orang',
+        'Presiden Soekarno turut hadir dalam acara tersebut',
+        'Mohammad Hatta juga hadir dalam acara peringatan tersebut',
+        'Presiden dan Wakil Presiden turut menghadiri acara peringatan tersebut'
+      ],
+      answer: 3
+    },
+    {
+      type: 'multiple',
+      category: 'Pilihan Ganda',
+      badgeClass: 'badge-pg',
+      question: 'Anton merupakan bintang kelas di kelasnya. Makna dari majas metafora yang bercetak miring adalah…',
+      options: ['pengalah', 'pemenang', 'berprestasi', 'paling rajin'],
+      answer: 2
+    },
+
+    // === KATEGORI B: ISIAN ===
+    {
+      type: 'fill',
+      category: 'Isian Singkat',
+      badgeClass: 'badge-isian',
+      question: 'Mitos yang terdapat pada legenda Batu Menangis adalah …'
+    },
+    {
+      type: 'fill',
+      category: 'Isian Singkat',
+      badgeClass: 'badge-isian',
+      question: 'Fakta yang terdapat pada legenda Batu Menangis adalah …'
+    },
+    {
+      type: 'fill',
+      category: 'Isian Singkat',
+      badgeClass: 'badge-isian',
+      question: 'Pesan yang terkandung dalam legenda Batu Menangis adalah …'
+    },
+    {
+      type: 'fill',
+      category: 'Isian Singkat',
+      badgeClass: 'badge-isian',
+      question: 'Dalam legenda Batu Menangis, majas simile terdapat pada kalimat …'
+    },
+    {
+      type: 'fill',
+      category: 'Isian Singkat',
+      badgeClass: 'badge-isian',
+      question: 'Legenda merupakan cerita rakyat yang berisi cerita tentang …'
+    },
+
+    // === KATEGORI C: ESSAY ===
+    {
+      type: 'essay',
+      category: 'Uraian / Essay',
+      badgeClass: 'badge-essay',
+      question: 'Monas singkatan dari … Jelaskan secara singkat!'
+    },
+    {
+      type: 'essay',
+      category: 'Uraian / Essay',
+      badgeClass: 'badge-essay',
+      question: 'Lokasi Monas berada di … Sebutkan alamat lengkapnya!'
+    },
+    {
+      type: 'essay',
+      category: 'Uraian / Essay',
+      badgeClass: 'badge-essay',
+      question: 'Luas area Monumen Nasional adalah … Berikan penjelasan tambahan tentang Monas!'
+    }
+  ];
+
+  // ===== STATE =====
+  let currentIndex = 0;
+  let answers = new Array(questions.length).fill(null);
+  let studentData = { name: '', class: '' };
+  let submitted = false;
+
+  // ===== DOM ELEMENTS =====
+  const screens = {
+    start: document.getElementById('startScreen'),
+    quiz: document.getElementById('quizScreen'),
+    result: document.getElementById('resultScreen')
+  };
+  const startBtn = document.getElementById('startBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const questionContainer = document.getElementById('questionContainer');
+  const progressFill = document.getElementById('progressFill');
+  const currentQEl = document.getElementById('currentQ');
+  const totalQEl = document.getElementById('totalQ');
+
+  // ===== FUNCTIONS =====
+  function showScreen(screenName) {
+    Object.keys(screens).forEach(k => screens[k].classList.remove('active'));
+    screens[screenName].classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function startQuiz() {
+    const name = document.getElementById('studentName').value.trim();
+    const cls = document.getElementById('studentClass').value.trim();
+
+    if (!name) {
+      alert('Mohon isi nama lengkap terlebih dahulu!');
+      document.getElementById('studentName').focus();
+      return;
+    }
+
+    studentData = { name, class: cls || '-' };
+    document.getElementById('displayName').textContent = name;
+    document.getElementById('displayClass').textContent = cls || '-';
+    totalQEl.textContent = questions.length;
+    
+    currentIndex = 0;
+    answers = new Array(questions.length).fill(null);
+    submitted = false;
+    
+    showScreen('quiz');
+    renderQues
